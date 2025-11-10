@@ -1,0 +1,5 @@
+{
+  "name": "C/C++ Assistant Chatbot",
+  "description": "A C/C++ Learning & Debugging Assistant with a 'Midnight Syntax' dark theme. It helps students and developers understand and fix their code, acting as a friendly AI-powered CS lab TA.",
+  "requestFramePermissions": []
+}
