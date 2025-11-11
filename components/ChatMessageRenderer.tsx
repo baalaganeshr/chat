@@ -45,17 +45,22 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
       );
     } else if (blockType === 'ul') {
       blocks.push(
-        <ul key={blocks.length} className="list-disc list-inside space-y-1 my-2">
+        <ul key={blocks.length} className="list-none space-y-2 my-4 border-l-2 border-[#00BCD4]/30 pl-4">
           {currentBlock.map((item, i) => (
-            <li key={i}>{parseInlineText(item.replace(/^[-*]\s*/, ''))}</li>
+            <li key={i} className="flex items-start">
+              <span className="w-1.5 h-1.5 bg-[#00BCD4] rounded-full mt-2.5 mr-3 flex-shrink-0"></span>
+              <span className="flex-1">{parseInlineText(item.replace(/^[-*]\s*/, ''))}</span>
+            </li>
           ))}
         </ul>
       );
     } else if (blockType === 'h3') {
        blocks.push(
-        <h3 key={blocks.length} className="text-lg font-semibold my-2 text-[#00BCD4]">
-          {parseInlineText(currentBlock.join(' ').replace(/^###\s*/, ''))}
-        </h3>
+        <div key={blocks.length} className="mt-6 mb-3 first:mt-0">
+          <h3 className="text-lg font-semibold text-[#00BCD4] border-b border-[#00BCD4]/30 pb-2">
+            {parseInlineText(currentBlock.join(' ').replace(/^###\s*/, ''))}
+          </h3>
+        </div>
        );
     } else {
       // Handle paragraphs with potential error/warning lines
@@ -67,7 +72,7 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
       const flushNormalLines = () => {
         if (normalLines.length > 0) {
           paragraphChunks.push(
-            <p key={`p-${blocks.length}-${paragraphChunks.length}`} className="my-2">
+            <p key={`p-${blocks.length}-${paragraphChunks.length}`} className="mb-4 leading-relaxed">
               {parseInlineText(normalLines.join('\n'))}
             </p>
           );
@@ -79,21 +84,35 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
         if (errorRegex.test(line)) {
           flushNormalLines();
           paragraphChunks.push(
-            <div key={`err-${blocks.length}-${index}`} className="flex items-start my-2 p-2 rounded-md bg-[#F44336]/10 text-[#E0E0E0]">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0 text-[#F44336]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="flex-1 font-mono text-sm">{parseInlineText(line)}</span>
+            <div key={`err-${blocks.length}-${index}`} className="mb-4 p-4 rounded-xl bg-[#F44336]/10 border border-[#F44336]/30 text-[#E0E0E0]">
+              <div className="flex items-start">
+                <div className="bg-[#F44336] rounded-full p-1 mr-3 mt-0.5 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-[#F44336] font-semibold text-sm mb-1">ERROR</p>
+                  <span className="font-mono text-sm">{parseInlineText(line)}</span>
+                </div>
+              </div>
             </div>
           );
         } else if (warningRegex.test(line)) {
           flushNormalLines();
           paragraphChunks.push(
-            <div key={`warn-${blocks.length}-${index}`} className="flex items-start my-2 p-2 rounded-md bg-[#FF9800]/10 text-[#E0E0E0]">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0 text-[#FF9800]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span className="flex-1 font-mono text-sm">{parseInlineText(line)}</span>
+            <div key={`warn-${blocks.length}-${index}`} className="mb-4 p-4 rounded-xl bg-[#FF9800]/10 border border-[#FF9800]/30 text-[#E0E0E0]">
+              <div className="flex items-start">
+                <div className="bg-[#FF9800] rounded-full p-1 mr-3 mt-0.5 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-[#FF9800] font-semibold text-sm mb-1">WARNING</p>
+                  <span className="font-mono text-sm">{parseInlineText(line)}</span>
+                </div>
+              </div>
             </div>
           );
         } else {

@@ -41,10 +41,12 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isLoading = fal
   
   if (isUser) {
     return (
-      <div className="flex items-start justify-end gap-3 w-full animate-fade-in">
-        <div className="p-4 rounded-xl bg-[#2C2C2C] border border-[#3A3A3A] shadow-[0_4px_16px_rgba(0,0,0,0.2)] max-w-[calc(100%-48px)]">
-          <div className="text-[#E0E0E0] break-words">
-            <ChatMessageRenderer content={message.content} />
+      <div className="flex items-start justify-end gap-4 w-full animate-fade-in mb-6">
+        <div className="max-w-[85%] md:max-w-[70%]">
+          <div className="p-4 rounded-2xl bg-[#2C2C2C] border border-[#3A3A3A] shadow-[0_4px_16px_rgba(0,0,0,0.2)]">
+            <div className="text-[#E0E0E0] break-words leading-relaxed">
+              <ChatMessageRenderer content={message.content} />
+            </div>
           </div>
         </div>
         <UserIcon />
@@ -54,25 +56,35 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isLoading = fal
 
   const containerClasses = isError
     ? "bg-[#F44336]/10 border border-[#F44336]/50"
-    : "bg-[#1E1E1E] border border-[#2C2C2C] shadow-[0_4px_16px_rgba(0,188,212,0.07)]";
+    : "bg-[#1A1A1A] border border-[#2A2A2A] shadow-[0_4px_20px_rgba(0,0,0,0.3)]";
   
   const Icon = isError ? ErrorIcon : BotIcon;
 
   return (
-    <div className={`p-4 rounded-xl ${containerClasses} animate-fade-in`}>
-      <div className="flex items-start gap-4 w-full">
-        <Icon />
-        <div className="flex-1 text-[#E0E0E0] break-words">
-          {isLoading && !message.content ? (
-            <LoadingIndicator />
-          ) : isError ? (
-            <div>
-              <p className="font-semibold text-[#F44336] mb-2">Error</p>
-              <ChatMessageRenderer content={message.content} />
-            </div>
-          ) : (
-            <ChatMessageRenderer content={message.content} />
-          )}
+    <div className="w-full animate-fade-in mb-6">
+      <div className={`p-6 rounded-2xl ${containerClasses}`}>
+        <div className="flex items-start gap-4 w-full">
+          <Icon />
+          <div className="flex-1 min-w-0">
+            {isLoading && !message.content ? (
+              <div className="py-2">
+                <LoadingIndicator />
+              </div>
+            ) : isError ? (
+              <div>
+                <div className="bg-[#F44336]/20 border border-[#F44336]/50 rounded-lg p-3 mb-4">
+                  <p className="font-semibold text-[#F44336] text-sm uppercase tracking-wide">Error</p>
+                </div>
+                <div className="text-[#E0E0E0] leading-relaxed">
+                  <ChatMessageRenderer content={message.content} />
+                </div>
+              </div>
+            ) : (
+              <div className="text-[#E0E0E0] leading-relaxed">
+                <ChatMessageRenderer content={message.content} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,4 @@
 
-import { GoogleGenAI, Chat } from "@google/genai";
-
 const SYSTEM_INSTRUCTION = `You are "CC Assistant," a C/C++ Learning & Debugging Assistant. Your persona is a friendly, knowledgeable, and patient CS lab TA. 
 Your goal is to help students, developers, and tinkerers understand and fix their C/C++ code.
 
@@ -44,25 +42,122 @@ int x = 5;
 Would you like a quick quiz on variable declarations?"
 `;
 
-let ai: GoogleGenAI | null = null;
+// Ollama API configuration
+const OLLAMA_BASE_URL = 'http://localhost:11434';
+const MODEL_NAME = 'cc-assistant-superfast'; // Using our super-fast 3B GPU model
 
-const getAI = () => {
-  if (!ai) {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY environment variable not set");
-    }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+interface OllamaMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface OllamaResponse {
+  message: {
+    role: string;
+    content: string;
+  };
+  done: boolean;
+}
+
+class OllamaChat {
+  private messages: OllamaMessage[] = [];
+
+  constructor() {
+    // Initialize with system instruction
+    this.messages.push({
+      role: 'system',
+      content: SYSTEM_INSTRUCTION
+    });
   }
-  return ai;
-};
 
-export const startChat = (): Chat => {
-  const aiInstance = getAI();
-  const chat = aiInstance.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-    },
-  });
-  return chat;
+  async sendMessage(content: string, onToken?: (token: string) => void): Promise<string> {
+    // Add user message
+    this.messages.push({
+      role: 'user',
+      content: content
+    });
+
+    try {
+      const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: MODEL_NAME,
+          messages: this.messages,
+          stream: !!onToken, // Stream if callback provided
+          options: {
+            num_predict: 200,
+            temperature: 0.1,
+            top_p: 0.7
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+      }
+
+      if (onToken && response.body) {
+        // Handle streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let assistantMessage = '';
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n').filter(line => line.trim());
+
+            for (const line of lines) {
+              try {
+                const data = JSON.parse(line);
+                if (data.message?.content) {
+                  const token = data.message.content;
+                  assistantMessage += token;
+                  onToken(token);
+                }
+                if (data.done) break;
+              } catch (e) {
+                // Skip malformed JSON lines
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        // Add assistant response to conversation history
+        this.messages.push({
+          role: 'assistant',
+          content: assistantMessage
+        });
+
+        return assistantMessage;
+      } else {
+        // Handle non-streaming response
+        const data: OllamaResponse = await response.json();
+        const assistantMessage = data.message.content;
+
+        // Add assistant response to conversation history
+        this.messages.push({
+          role: 'assistant',
+          content: assistantMessage
+        });
+
+        return assistantMessage;
+      }
+    } catch (error) {
+      console.error('Error calling Ollama API:', error);
+      throw new Error(`Failed to connect to Ollama. Make sure Ollama is running on ${OLLAMA_BASE_URL}`);
+    }
+  }
+}
+
+export const startChat = (): OllamaChat => {
+  return new OllamaChat();
 };

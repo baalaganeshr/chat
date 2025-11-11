@@ -1,14 +1,18 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Chat } from '@google/genai';
 import { startChat } from '../services/geminiService';
 import type { ChatMessage } from '../types';
 import { WELCOME_MESSAGE } from '../constants/welcome';
+
+// Define the OllamaChat type to match our service
+type OllamaChat = {
+  sendMessage(content: string, onToken?: (token: string) => void): Promise<string>;
+};
 
 export const useChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const chatRef = useRef<Chat | null>(null);
+  const chatRef = useRef<OllamaChat | null>(null);
 
   useEffect(() => {
     // Initialize the chat session when the hook is first used
@@ -37,8 +41,6 @@ export const useChat = () => {
 
     let modelMessageId = '';
     try {
-      const stream = await chatRef.current.sendMessageStream({ message });
-      let modelResponse = '';
       modelMessageId = (Date.now() + 1).toString();
 
       // Add a placeholder for the bot's message
@@ -47,14 +49,16 @@ export const useChat = () => {
         { id: modelMessageId, role: 'model', content: '' },
       ]);
 
-      for await (const chunk of stream) {
-        modelResponse += chunk.text;
+      // Get streaming response from Ollama
+      let currentContent = '';
+      await chatRef.current.sendMessage(message, (token: string) => {
+        currentContent += token;
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
-            msg.id === modelMessageId ? { ...msg, content: modelResponse } : msg
+            msg.id === modelMessageId ? { ...msg, content: currentContent } : msg
           )
         );
-      }
+      });
     } catch (e) {
       const err = e as Error;
       // Set the error state without adding an error message to the chat history

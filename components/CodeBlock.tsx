@@ -133,50 +133,58 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ text, language: initialLan
   }
 
   return (
-    <div className="bg-black/30 rounded-xl my-4 overflow-hidden relative border border-white/5">
-      <div className="flex justify-between items-center px-4 py-2 bg-black/20">
-        <select
-          value={selectedLanguage}
-          onChange={(e) => setSelectedLanguage(e.target.value)}
-          className="bg-transparent text-xs text-[#B0B0B0] uppercase select-none appearance-none cursor-pointer focus:outline-none p-1 rounded-md hover:bg-white/10 transition-colors"
-          aria-label="Select code language"
-        >
-          <option value="cpp">C++</option>
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="text">Text</option>
-        </select>
+    <div className="bg-[#0D1117] rounded-xl my-6 overflow-hidden relative border border-[#30363D] shadow-lg">
+      <div className="flex justify-between items-center px-4 py-3 bg-[#161B22] border-b border-[#30363D]">
+        <div className="flex items-center space-x-3">
+          <div className="flex space-x-2">
+            <div className="w-3 h-3 rounded-full bg-[#FF5F57]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#28CA42]"></div>
+          </div>
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="bg-transparent text-xs text-[#8B949E] uppercase select-none appearance-none cursor-pointer focus:outline-none p-1 rounded-md hover:bg-[#21262D] transition-colors font-mono"
+            aria-label="Select code language"
+          >
+            <option value="cpp" className="bg-[#0D1117]">C++</option>
+            <option value="javascript" className="bg-[#0D1117]">JavaScript</option>
+            <option value="python" className="bg-[#0D1117]">Python</option>
+            <option value="text" className="bg-[#0D1117]">Text</option>
+          </select>
+        </div>
         <button
           onClick={handleCopy}
-          className={`p-2 rounded-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/20 focus:ring-[#00BCD4] text-xs flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#58A6FF] text-xs flex items-center gap-2 font-mono ${
             isCopied
-              ? 'bg-[#4CAF50]/20 text-[#4CAF50]'
-              : 'bg-transparent text-[#B0B0B0] hover:bg-white/10 hover:text-white'
+              ? 'bg-[#238636] text-white'
+              : 'bg-[#21262D] text-[#8B949E] hover:bg-[#30363D] hover:text-[#F0F6FC] border border-[#30363D]'
           }`}
           aria-label={isCopied ? 'Copied' : 'Copy code'}
         >
           {isCopied ? <CheckIcon /> : <CopyIcon />}
-          <span>{isCopied ? 'Copied!' : 'Copy'}</span>
+          <span>{isCopied ? 'Copied' : 'Copy'}</span>
       </button>
       </div>
 
-
-      <div className="overflow-x-auto text-left text-sm">
-        <table className="font-mono text-[#E0E0E0] w-full border-collapse">
+      <div className="overflow-x-auto text-left text-sm bg-[#0D1117]">
+        <table className="font-mono text-[#E6EDF3] w-full border-collapse">
             <tbody>
                 {lines.map((line, i) => {
                     const hasError = line.includes('// ERROR!') || line.includes('# ERROR!');
                     const cleanLine = line.replace(/\s*(\/\/|#)\s*ERROR!/, '').trimEnd();
-                    const rowClasses = hasError ? 'bg-[#F44336]/15' : '';
+                    const rowClasses = hasError 
+                        ? 'bg-[#F85149]/10 border-l-4 border-[#F85149]' 
+                        : 'hover:bg-[#161B22]/50';
 
                     return (
-                        <tr key={i} className={rowClasses}>
-                            <td className="w-10 select-none text-right px-3 py-0.5 text-[#B0B0B0]/40" aria-hidden="true">
+                        <tr key={i} className={`${rowClasses} group`}>
+                            <td className="w-12 select-none text-right px-4 py-1 text-[#656D76] border-r border-[#21262D] bg-[#0D1117] sticky left-0" aria-hidden="true">
                                 {i + 1}
                             </td>
-                            <td className="pr-4 py-0.5 pl-2">
-                                <code className="whitespace-pre-wrap break-words">
-                                    {cleanLine.length > 0 ? highlightSyntax(cleanLine, selectedLanguage) : <span>&nbsp;</span>}
+                            <td className="px-4 py-1 pl-6">
+                                <code className="whitespace-pre-wrap break-words block">
+                                    {cleanLine.length > 0 ? highlightSyntax(cleanLine, selectedLanguage) : <span className="opacity-50">&nbsp;</span>}
                                 </code>
                             </td>
                         </tr>
